@@ -1,0 +1,119 @@
+#NoEnv
+#Persistent
+#SingleInstance ignore
+
+#InstallKeybdHook
+#InstallMouseHook
+#UseHook on
+
+#KeyHistory 0
+#MaxThreads, 20
+#MaxThreadsPerHotkey, 20
+#MaxThreadsBuffer Off
+SetBatchLines, 10ms
+SetKeyDelay, -1
+SetWinDelay, 0
+SetMouseDelay, 0
+SetControlDelay, 0
+ListLines off
+
+SendMode Input
+
+if (!A_IsAdmin) {
+	Run *RunAs "%A_ScriptFullPath%"
+	ExitApp
+}
+
+#Include resource\libs\office.ahk
+#Include resource\libs\internet.ahk
+
+global script := {name: "test"}
+
+Menu, Tray, add, % script.name, reloa
+Menu, Tray, Default, % script.name
+Menu, Tray, Disable, % script.name
+Menu, Tray, add
+Menu, Tray, add, Перезагрузить, reloa
+Menu, Tray, add, Выход, GuiClose
+Menu, Tray, NoStandard
+Menu, Tray, Tip, % script.name
+
+array := getURLsHTML(A_Desktop "/html.txt", "a")
+for i, v in array
+	msgbox, % i " - " v
+
+return
+/*
+global html
+
+;URLDownloadToFile, https://gta-samp.ru/, % A_Desktop "/html.txt"
+FileRead, html, % A_Desktop "/html.txt"
+
+
+ComObjError(false)
+document := ComObjCreate("HTMLFile")
+document.write(html)
+
+while (x2 := document.getElementsByTagName("a")[A_Index-1]) {
+	msgbox, % x2.href
+}
+*/
+return
+
+getURLsHTML(linkORfile, name, site:="gta-samp.ru") {
+	temp := []
+	html := ""
+	ComObjError(false)
+	document := ComObjCreate("HTMLFile")
+
+	if (varContains(linkORfile, "http://") || varContains(linkORfile, "https://"))
+		html := urlGetContents(linkORfile)
+	else
+		html := ReadFile(linkORfile)
+	Sleep, 250
+	document.write(html)
+
+	links := document.links
+	while (x2 := links[A_Index-1]) {
+		if (x2.href="about:blank")
+			continue
+		temp.Push(strReplace(x2.href, "about:./", "http://" site "/"))
+	}
+
+	document.close()
+
+	text := ""
+	for i, v in temp
+		text .= "[" i "] " v "`n"
+	msgbox, % text
+
+	return temp
+}
+
+return
+
+reloa:
+reload
+
+return
+
+GuiClose:
+ExitApp
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
